@@ -2,16 +2,39 @@ from generate import generate
 from customTokenizer import loadCustomTokenizer
 import os
 from similarity_score import similiarity_score
+from determine_interest import determine_interest
+from determine_diversity import determine_diversity
 import numpy as np
 
-def sim(model):
+def fitness(generated_text,x,tokenizer,fitness_type='interest'):
+    if fitness_type == 'interest':
+        score = determine_interest(x)
+    elif fitness_type == 'similarity':
+        score = similiarity_score(generated_text,tokenizer)
+    elif fitness_type == 'diversity':
+        score = determine_diversity(x)
+    else:
+        raise ValueError("fitness_type must be 'interest' or 'similarity'")
+    return score
+
+def sim(model,fitness_type='interest'):
     tokenizer_path = os.path.join("data","my_tokenizer")
     tokenizer,data_collator = loadCustomTokenizer(tokenizer_path)
     scores = []
     for _ in range(100):
         generated_text, x = generate(model,tokenizer)
-        s = similiarity_score(generated_text,tokenizer)
-        scores.append(s)
+        if generated_text == '[CLS][SEP]':
+            score = 0
+        else:
+            pad_token_id = tokenizer.pad_token_id
+            x_dict = {i:list(x).count(i) for i in list(x) if i != pad_token_id}
+            x_max = max(x_dict.values())
+            if x_max > 5:
+                score = 0
+            else:
+                score = fitness(generated_text,x,tokenizer,fitness_type='interest')
+        #s = similiarity_score(generated_text,tokenizer)
+        scores.append(score)
     return sum(scores)
 
 if __name__ == '__main__':
