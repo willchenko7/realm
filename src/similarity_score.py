@@ -37,6 +37,14 @@ def get_scores(input_sentence,data,tokenizer):
         if x_max > 5:
             scores.append(0)
             continue
+        #does any token repeat more than two times in a row in input_sentence
+        b_repeat = False
+        for i in range(len(input_sentence)-1):
+            if input_sentence[i] == input_sentence[i+1] and input_sentence[i] != pad_token_id:
+                b_repeat = True
+        if b_repeat:
+            scores.append(0)
+            continue
         scores.append(cosine_similarity(x,y))
     return scores
 
