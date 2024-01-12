@@ -4,7 +4,7 @@ goal: determine fitness of interest model based on latest feedback
 import numpy as np
 import pickle
 import os
-from forward import forward_with_attention
+from forward import interest_forward
 from csv_helpers import csv2lol
 from customTokenizer import loadCustomTokenizer
 
@@ -25,7 +25,7 @@ def interest_fitness(interest_model,model_name):
         #replace last n tokens with tokenized sentence
         x[-len(tokenized_sentence):] = tokenized_sentence
         #forward pass
-        output = forward_with_attention(x, w, b, 5, attn_weights, attn_query, attn_keys, attn_values)
+        output = interest_forward(x, w, b, 5, attn_weights, attn_query, attn_keys, attn_values)
         #calculate error
         error = abs(float(label) - float(output))
         total_error += error
