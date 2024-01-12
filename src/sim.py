@@ -11,8 +11,6 @@ def fitness(generated_text,x,tokenizer,fitness_type='interest'):
         score = determine_interest(x)
     elif fitness_type == 'similarity':
         score = similiarity_score(generated_text,tokenizer)
-    elif fitness_type == 'diversity':
-        score = determine_diversity(x)
     else:
         raise ValueError("fitness_type must be 'interest' or 'similarity'")
     return score
@@ -21,8 +19,17 @@ def sim(model,fitness_type='interest'):
     tokenizer_path = os.path.join("data","my_tokenizer")
     tokenizer,data_collator = loadCustomTokenizer(tokenizer_path)
     scores = []
+    all_generated_text = []
+    all_x = []
     for _ in range(100):
         generated_text, x = generate(model,tokenizer)
+        all_generated_text.append(generated_text)
+        all_x.append(x)
+    
+    if fitness_type == 'diversity':
+        return determine_diversity(all_x)
+
+    for generated_text,x in zip(all_generated_text,all_x):
         if generated_text == '[CLS][SEP]':
             score = 0
         else:

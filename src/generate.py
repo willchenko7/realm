@@ -8,13 +8,16 @@ def generate(model,tokenizer):
     cls_token_id = tokenizer.cls_token_id
     input_size = 1000
     x = np.array([pad_token_id for _ in range(input_size)])
-    #replace last token with cls_token_id
-    x[-1] = cls_token_id
-    for _ in range(100):
+    #replace second to last token with cls_token_id
+    x[-2] = cls_token_id
+    #replace last token with a random token between 1 and sep_token_id
+    x[-1] = np.random.randint(1,sep_token_id)
+    sentence_length = 10
+    for _ in range(sentence_length):
         y = forward_with_attention(x, w, b, 5, attn_weights, attn_query, attn_keys, attn_values)
         #if y is Nan, replace it with 0
         if np.isnan(y):
-            y = 0
+            y = 1
         #map y (a float between 0 and 1) to a token id in the range [0,sep_token_id]
         y = int(y * sep_token_id)
         #add the token to the end of the input, dropping the first token

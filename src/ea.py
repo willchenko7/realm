@@ -1,5 +1,6 @@
 import numpy as np
 from sim import sim
+from interest_fitness import interest_fitness
 import pickle
 import os
 
@@ -31,15 +32,16 @@ def mutate_initial_pop(solution, mutation_rate=0.01):
     mutated_attn_values = attn_values + np.random.randn(*attn_values.shape) * mutation_rate
     return mutated_w, mutated_b, mutated_attn_weights, mutated_attn_query, mutated_attn_keys, mutated_attn_values
 
-def initialize_population(pop_size, layer_sizes,from_file=False):
+def initialize_population(pop_size, layer_sizes,from_file=None):
     '''
     goal: initialize population of size pop_size with random weights and biases for each layer
     -optional: initialize population based on best solution
     '''
-    if from_file:
+    input_size = 1000
+    if from_file is not None:
         #if we want to initialize population based on best solution
         population = []
-        best_solution = pickle.load(open(os.path.join('models','best_solution.pkl'),'rb'))
+        best_solution = pickle.load(open(os.path.join('models',from_file + '.pkl'),'rb'))
         for _ in range(pop_size):
             mutated_solution = mutate_initial_pop(best_solution)
             population.append(mutated_solution)
@@ -59,14 +61,17 @@ def initialize_population(pop_size, layer_sizes,from_file=False):
         population.append((w, b, attn_weights, attn_query, attn_keys, attn_values))
     return population
 
-def compute_fitness(solution):
+def compute_fitness(solution,fitness_type='interest',read_model_name=None):
     '''
     goal: compute fitness of solution
     -fitness is negative because we want to minimize the output
     '''
-    fitness = sim(solution)
+    if fitness_type == 'update_interest':
+        fitness = interest_fitness(solution,read_model_name)
+    else:
+        fitness = -1*sim(solution,fitness_type=fitness_type)
     print(f"Final Fitness: {fitness}")
-    return fitness*-1  # Since the goal is to minimize the output
+    return fitness  # Since the goal is to minimize the output
 
 def select_parents(population, fitnesses, num_parents):
     '''
@@ -105,16 +110,22 @@ def mutate(solution, mutation_rate):
     mutated_attn_values = attn_values + np.random.randn(*attn_values.shape) * mutation_rate
     return mutated_w, mutated_b, mutated_attn_weights, mutated_attn_query, mutated_attn_keys, mutated_attn_values
 
-def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name):
+def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name=None,fitness_type='interest',starting_point=None):
     '''
     goal: perform evolutionary algorithm
     '''
     # Initialize population
-    population = initialize_population(pop_size, layer_sizes)
+    if model_name == 'interest_model':
+        population = initialize_population(pop_size, layer_sizes,from_file=model_name)
+    else:
+        if starting_point is None:
+            population = initialize_population(pop_size, layer_sizes,None)
+        else:
+            population = initialize_population(pop_size, layer_sizes,from_file=starting_point)
     # Evolution
     for generation in range(num_generations):
         # Compute fitness for each solution
-        fitnesses = np.array([compute_fitness(solution) for solution in population])
+        fitnesses = np.array([compute_fitness(solution,fitness_type,read_model_name) for solution in population])
         # Select parents
         parents = select_parents(population, fitnesses, num_parents)
         # Generate next generation
@@ -135,15 +146,24 @@ def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate
     #print("Best Solution:", best_solution)
     print("Best Fitness:", fitnesses[best_index])
     #save best solution as pickle
-    pickle.dump(best_solution, open(os.path.join('models',f'best_solution_{model_name}.pkl'),'wb'))
+    pickle.dump(best_solution, open(os.path.join('models',f'{model_name}.pkl'),'wb'))
     return
 
 if __name__ == "__main__":
     input_size = 1000
     layer_sizes = [500, 200, 100, 50, 1]
     pop_size = 10
-    num_generations = 3
+    num_generations = 10
     num_parents = 10
-    mutation_rate = 3.0
-    model_name = 'model2'
-    ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name)
+    mutation_rate = 10
+    #ea_type = 'update_interest'
+    ea_type = ''
+    if ea_type == 'update_interest':
+        model_name = 'interest_model'
+        read_model_name = 'model3'
+        fitness_type = 'update_interest'
+    else:
+        model_name = 'model3'
+        read_model_name = None
+        fitness_type = 'interest'
+    ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name,fitness_type)
