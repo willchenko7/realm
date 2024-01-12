@@ -13,6 +13,12 @@ def sigmoid(x):
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x))
 
+def relu(x):
+    x = np.maximum(x, 0)
+    if x > 1:
+        x = 1
+    return x
+
 #forward pass without attention
 def forward(x, w, b, n_layers):
     buffer = 1
@@ -22,7 +28,8 @@ def forward(x, w, b, n_layers):
     for i in range(n_layers):
         x = np.dot(x, w[i]*buffer) + b[i]*buffer
     y = np.sum(x)/1e10
-    y = sigmoid(y)
+    #y = sigmoid(y)
+    y = relu(y)
     return y
 
 def attention(weights, query, keys, values):
@@ -44,9 +51,30 @@ def forward_with_attention(x, w, b, n_layers, attn_weights, attn_query, attn_key
         if i == 0:
             x = attention(attn_weights, attn_query, attn_keys, x)
 
+    y = np.sum(x) / 1e14 / 2
+    #print(f'y: {y}')
+    #y = sigmoid(y)
+    y = relu(y)
+    #print(f'y: {y}')
+    return y
+
+def interest_forward(x, w, b, n_layers, attn_weights, attn_query, attn_keys, attn_values):
+    x = x.astype(np.float64)
+    w = [iw.astype(np.float64) for iw in w]
+    b = [ib.astype(np.float64) for ib in b]
+
+    for i in range(n_layers):
+        x = np.dot(x, w[i]) + b[i]
+
+        # Add attention mechanism at a specific layer
+        if i == 0:
+            x = attention(attn_weights, attn_query, attn_keys, x)
+
     y = np.sum(x) / 1e14
     #print(f'y: {y}')
     y = sigmoid(y)
+    #y = relu(y)
+    #print(f'y: {y}')
     return y
 
 if __name__ == "__main__":
