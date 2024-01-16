@@ -13,7 +13,7 @@ def generate_from_model(model_name,tokenizer):
     return all_generated_text
 
 if __name__ == '__main__':
-    model_name = "model5.pkl"
+    model_name = "model6.pkl"
     #load tokenizer
     tokenizer_path = os.path.join("data","my_tokenizer")
     tokenizer,data_collator = loadCustomTokenizer(tokenizer_path)
