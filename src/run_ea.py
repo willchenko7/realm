@@ -7,9 +7,9 @@ def run_ea(ea_type,input_model_name,starting_point):
     input_size = 1000
     layer_sizes = [500, 200, 100, 50, 1]
     pop_size = 50
-    num_generations = 100
+    num_generations = 500
     num_parents = 50
-    mutation_rate = 3
+    mutation_rate = 1000
     #ea_type = 'update_interest'
     #ea_type = ''
     if ea_type == 'update_interest':
@@ -24,6 +24,10 @@ def run_ea(ea_type,input_model_name,starting_point):
         model_name = input_model_name
         read_model_name = None
         fitness_type = 'interest'
+    elif ea_type == 'interest_torch':
+        model_name = input_model_name
+        read_model_name = None
+        fitness_type = 'interest_torch'
     elif ea_type == 'diversity':
         model_name = input_model_name
         read_model_name = None
@@ -36,7 +40,7 @@ def run_ea(ea_type,input_model_name,starting_point):
     return
 
 if __name__ == '__main__':
-    ea_type = 'diversity'
-    input_model_name = 'model5'
-    starting_point = 'model5'
+    ea_type = 'interest_torch'
+    input_model_name = 'model6'
+    starting_point = 'model6'
     run_ea(ea_type,input_model_name,starting_point)

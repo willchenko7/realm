@@ -4,13 +4,17 @@ import os
 from similarity_score import similiarity_score
 from determine_interest import determine_interest
 from determine_diversity import determine_diversity
+from determine_interest_from_torch import determine_interest_from_torch
 import numpy as np
+import re
 
 def fitness(generated_text,x,tokenizer,fitness_type='interest'):
     if fitness_type == 'interest':
         score = determine_interest(x)
     elif fitness_type == 'similarity':
         score = similiarity_score(generated_text,tokenizer)
+    elif fitness_type == 'interest_torch':
+        score = determine_interest_from_torch(generated_text)
     else:
         raise ValueError("fitness_type must be 'interest' or 'similarity'")
     return score
@@ -32,6 +36,8 @@ def sim(model,fitness_type='interest'):
     for generated_text,x in zip(all_generated_text,all_x):
         if generated_text == '[CLS][SEP]':
             score = 0
+        elif len(re.split(' ',generated_text.replace('[CLS]','').replace('[SEP]',''))) < 2:
+            score = 0
         else:
             pad_token_id = tokenizer.pad_token_id
             x_dict = {i:list(x).count(i) for i in list(x) if i != pad_token_id}
@@ -39,7 +45,7 @@ def sim(model,fitness_type='interest'):
             if x_max > 5:
                 score = 0
             else:
-                score = fitness(generated_text,x,tokenizer,fitness_type='interest')
+                score = fitness(generated_text,x,tokenizer,fitness_type)
         #s = similiarity_score(generated_text,tokenizer)
         scores.append(score)
     return sum(scores)
