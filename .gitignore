@@ -1,4 +1,5 @@
 venv
 src/__pycache__
 __pycache__
-run_continuous_training.py
+src/my_continuous_training.py
+src/my_run_ea.py
