@@ -50,7 +50,7 @@ def predict_sentiment(model, sentence, tokenizer, vocab, max_length):
         predicted_class = torch.argmax(probabilities, dim=1)
     return predicted_class.item(), probabilities.squeeze().tolist()
 
-def determine_interest_from_torch(sentence):
+def determine_interest_from_torch(sentence, interest_mark=0.5):
     with open('vocab.pkl', 'rb') as f:
         vocab = pickle.load(f)
     vocab_size = len(vocab)
@@ -66,6 +66,11 @@ def determine_interest_from_torch(sentence):
     tokenizer = get_tokenizer('basic_english')
     predicted_class, probabilities = predict_sentiment(model, sentence, tokenizer, vocab, max_length)
     #print(f"Predicted class: {predicted_class}, Probabilities: {probabilities}")
+    #interest_mark = 0.01
+    if probabilities[1] > interest_mark:
+        predicted_class = 1
+    else:
+        predicted_class = 0
     return predicted_class
 
 if __name__ == '__main__':
