@@ -3,11 +3,11 @@ wrapper fn to make it easier to run different types of ea's
 '''
 from ea import ea
 
-def run_ea(ea_type,input_model_name,starting_point):
+def run_ea(ea_type,input_model_name,starting_point,interest_mark=0.5):
     input_size = 1000
     layer_sizes = [500, 200, 100, 50, 1]
     pop_size = 50
-    num_generations = 500
+    num_generations = 10
     num_parents = 50
     mutation_rate = 1000
     #ea_type = 'update_interest'
@@ -36,11 +36,11 @@ def run_ea(ea_type,input_model_name,starting_point):
         model_name = input_model_name
         read_model_name = None
         fitness_type = 'interest'
-    ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name,fitness_type,starting_point)
-    return
+    final_fitness = ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name,fitness_type,starting_point,interest_mark)
+    return final_fitness
 
 if __name__ == '__main__':
-    ea_type = 'interest_torch'
-    input_model_name = 'model6'
+    ea_type = 'similarity'
+    input_model_name = 'model7'
     starting_point = 'model6'
     run_ea(ea_type,input_model_name,starting_point)

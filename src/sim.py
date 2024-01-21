@@ -8,18 +8,18 @@ from determine_interest_from_torch import determine_interest_from_torch
 import numpy as np
 import re
 
-def fitness(generated_text,x,tokenizer,fitness_type='interest'):
+def fitness(generated_text,x,tokenizer,fitness_type='interest',interest_mark=0.5):
     if fitness_type == 'interest':
         score = determine_interest(x)
     elif fitness_type == 'similarity':
         score = similiarity_score(generated_text,tokenizer)
     elif fitness_type == 'interest_torch':
-        score = determine_interest_from_torch(generated_text)
+        score = determine_interest_from_torch(generated_text,interest_mark)
     else:
         raise ValueError("fitness_type must be 'interest' or 'similarity'")
     return score
 
-def sim(model,fitness_type='interest'):
+def sim(model,fitness_type='interest',interest_mark=0.5):
     tokenizer_path = os.path.join("data","my_tokenizer")
     tokenizer,data_collator = loadCustomTokenizer(tokenizer_path)
     scores = []
@@ -45,7 +45,7 @@ def sim(model,fitness_type='interest'):
             if x_max > 5:
                 score = 0
             else:
-                score = fitness(generated_text,x,tokenizer,fitness_type)
+                score = fitness(generated_text,x,tokenizer,fitness_type,interest_mark)
         #s = similiarity_score(generated_text,tokenizer)
         scores.append(score)
     return sum(scores)

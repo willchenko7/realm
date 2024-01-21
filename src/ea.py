@@ -61,7 +61,7 @@ def initialize_population(pop_size, layer_sizes,from_file=None):
         population.append((w, b, attn_weights, attn_query, attn_keys, attn_values))
     return population
 
-def compute_fitness(solution,fitness_type='interest',read_model_name=None):
+def compute_fitness(solution,fitness_type='interest',read_model_name=None,interest_mark=0.5):
     '''
     goal: compute fitness of solution
     -fitness is negative because we want to minimize the output
@@ -69,7 +69,7 @@ def compute_fitness(solution,fitness_type='interest',read_model_name=None):
     if fitness_type == 'update_interest':
         fitness = interest_fitness(solution,read_model_name)
     else:
-        fitness = -1*sim(solution,fitness_type=fitness_type)
+        fitness = -1*sim(solution,fitness_type=fitness_type,interest_mark=interest_mark)
     print(f"Final Fitness: {fitness}")
     return fitness  # Since the goal is to minimize the output
 
@@ -110,7 +110,7 @@ def mutate(solution, mutation_rate):
     mutated_attn_values = attn_values + np.random.randn(*attn_values.shape) * mutation_rate
     return mutated_w, mutated_b, mutated_attn_weights, mutated_attn_query, mutated_attn_keys, mutated_attn_values
 
-def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name=None,fitness_type='interest',starting_point=None):
+def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate,model_name,read_model_name=None,fitness_type='interest',starting_point=None,interest_mark=0.5):
     '''
     goal: perform evolutionary algorithm
     '''
@@ -125,7 +125,7 @@ def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate
     # Evolution
     for generation in range(num_generations):
         # Compute fitness for each solution
-        fitnesses = np.array([compute_fitness(solution,fitness_type,read_model_name) for solution in population])
+        fitnesses = np.array([compute_fitness(solution,fitness_type,read_model_name,interest_mark) for solution in population])
         # Select parents
         parents = select_parents(population, fitnesses, num_parents)
         # Generate next generation
@@ -144,10 +144,11 @@ def ea(input_size,layer_sizes,pop_size,num_generations,num_parents,mutation_rate
     best_index = np.argmin(fitnesses)
     best_solution = population[best_index]
     #print("Best Solution:", best_solution)
-    print("Best Fitness:", fitnesses[best_index])
+    best_fitness = fitnesses[best_index]
+    print("Best Fitness:", best_fitness)
     #save best solution as pickle
     pickle.dump(best_solution, open(os.path.join('models',f'{model_name}.pkl'),'wb'))
-    return
+    return best_fitness
 
 if __name__ == "__main__":
     input_size = 1000
